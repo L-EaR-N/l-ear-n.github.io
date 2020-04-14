@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>csdn_export_md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1><a id="gottoolkit_0"></a>got-toolkit使用教程</h1>
+<h2><a id="_2"></a>目录：</h2>
+<h2><a id="toc_4"></a><div class="toc"><h3>文章目录</h3><ul><li><a href="#gottoolkit_0">got-toolkit使用教程</a></li><ul><li><a href="#_2">目录：</a></li><li><a href="#toc_4">@[toc]</a></li><li><a href="#_7">前言：</a></li><li><a href="#gottoolkit_13">了解如何使用got-toolkit</a></li><ul><li><a href="#IdentityTracker_48">使用IdentityTracker跑数据集</a></li><li><a href="#_71">自定义跟踪器</a></li><ul><li><a href="#_init__update__92">解析 init 和 update 方法</a></li><ul><li><a href="#_init__114">重写 init 方法</a></li><li><a href="#_update__129">重写 update 方法</a></li><li><a href="#_143">测试程序</a></li></ul></ul></ul><li><a href="#_197">总结：</a></li></ul></ul></div></h2>
+<h2><a id="_7"></a>前言：</h2>
+<p> got-toolkit的github仓库：<a href="https://github.com/got-10k/toolkit">https://github.com/got-10k/toolkit</a></p>
+<p> got-toolkit是一个专门针对于单目标跟踪算法和单目标跟踪数据集建立的工具程序，我更愿意把got-toolkit理解成是一个建立在算法的数据集之间的桥梁，在算法和数据集中间搭建起一个容易切换的平台。对于现在存在的绝大部分单目标跟踪算法以及单目标跟踪数据集，使用got工具即可轻松实现算法在不同数据集之间的切换，降低使用不同数据集时带来的成本。但是，got工具在带来便利的同时，也会有一些麻烦，比如适用于got-toolkit的数据集有严格的规定，只能使用指定的数据集，再比如使用got-toolkit对现有的开源的单目标跟踪算法进行融合的时候，需要耗费较多的时间和精力在算法分析和程序融合上。解决第一个问题只能依靠got-toolkit官方不断地更新got工具以适应更多的数据集，而解决第二个问题需要一些小技巧。这篇文章的目的就是讲解在融合单目标跟踪算法和got-toolkit程序时可以使用的小技巧。</p>
+<h2><a id="gottoolkit_13"></a>了解如何使用got-toolkit</h2>
+<blockquote>
+<p>进入got-toolkit的github仓库以后，可以在README教程中初步了解如何使用got工具跑数据集。</p>
+<p>根据README教程的指示，got-toolkit的框架文件如下所示：</p>
+</blockquote>
+<pre><code class="prism language-python"><span class="token keyword">from</span> got10k<span class="token punctuation">.</span>trackers <span class="token keyword">import</span> Tracker
+<span class="token keyword">from</span> got10k<span class="token punctuation">.</span>experiments <span class="token keyword">import</span> ExperimentGOT10k
+
+<span class="token keyword">class</span> <span class="token class-name">IdentityTracker</span><span class="token punctuation">(</span>Tracker<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>IdentityTracker<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">'IdentityTracker'</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">def</span> <span class="token function">init</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">,</span> box<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>box <span class="token operator">=</span> box
+
+    <span class="token keyword">def</span> <span class="token function">update</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>box
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token comment"># setup tracker</span>
+    tracker <span class="token operator">=</span> IdentityTracker<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># run experiments on GOT-10k (validation subset)</span>
+    experiment <span class="token operator">=</span> ExperimentGOT10k<span class="token punctuation">(</span><span class="token string">'data/GOT-10k'</span><span class="token punctuation">,</span> subset<span class="token operator">=</span><span class="token string">'val'</span><span class="token punctuation">)</span>
+    experiment<span class="token punctuation">.</span>run<span class="token punctuation">(</span>tracker<span class="token punctuation">,</span> visualize<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># report performance</span>
+    experiment<span class="token punctuation">.</span>report<span class="token punctuation">(</span><span class="token punctuation">[</span>tracker<span class="token punctuation">.</span>name<span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li>首先，使用got-toolkit需要安装 got10k 模块，直接在命令行中输入 <code>pip install --upgrade got10k</code> 即可完成安装，详细的安装教程请参考got-toolkit的README</li>
+<li>整个框架文件分为两个部分，第一部分是定义一个IdentityTracker子类，继承自Tracker父类，并且需要重写父类的init和update方法。init方法适用于初始化算法跟踪器用的，update方法适用于对除去第一帧的其他帧进行预测用的。后面会对这两个方法进行详细的介绍。第二部分就是利用自定义的IdentityTracker跑数据集。下面先对第二部分的内容进行介绍。</li>
+</ul>
+<h3><a id="IdentityTracker_48"></a>使用IdentityTracker跑数据集</h3>
+<blockquote>
+<p>第二部分的代码如下所示：</p>
+</blockquote>
+<pre><code class="prism language-python"><span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token comment"># setup tracker</span>
+    tracker <span class="token operator">=</span> IdentityTracker<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># run experiments on GOT-10k (validation subset)</span>
+    experiment <span class="token operator">=</span> ExperimentGOT10k<span class="token punctuation">(</span><span class="token string">'data/GOT-10k'</span><span class="token punctuation">,</span> subset<span class="token operator">=</span><span class="token string">'val'</span><span class="token punctuation">)</span>
+    experiment<span class="token punctuation">.</span>run<span class="token punctuation">(</span>tracker<span class="token punctuation">,</span> visualize<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># report performance</span>
+    experiment<span class="token punctuation">.</span>report<span class="token punctuation">(</span><span class="token punctuation">[</span>tracker<span class="token punctuation">.</span>name<span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<ul>
+<li><code>tracker = IdentityTracker()</code>  –  生成一个IdentityTracker类的实例，也就是建立一个跟踪器对象，用于对数据集进行跟踪预测。</li>
+<li><code>experiment = ExperimentGOT10k('data/GOT-10k', subset='val')</code>  –  生成一个”实验“对象，这个“实验”对象属于ExperimentGOT10K类，表示该实验是基于GOT10k数据集进行的实验。got-toolkit支持很多的数据集，例举如下：<a href="http://cvlab.hanyang.ac.kr/tracker_benchmark/index.html">OTB (2013/2015)</a>, <a href="http://votchallenge.net/">VOT (2013~2018)</a>, <a href="https://github.com/flyers/drone-tracking">DTB70</a>, <a href="http://www.dabi.temple.edu/~hbling/data/TColor-128/TColor-128.html">TColor128</a>, <a href="http://ci2cv.net/nfs/index.html">NfS (30/240 fps)</a>, <a href="https://ivul.kaust.edu.sa/Pages/pub-benchmark-simulator-uav.aspx">UAV (123/20L)</a>, <a href="https://cis.temple.edu/lasot/">LaSOT</a> , <a href="https://tracking-net.org/">TrackingNet</a>等。官方会持续更新got-toolkit以适应更多的数据集。</li>
+<li>下面就是运行程序和生成报告的环节：
+<ul>
+<li><code>experiment.run(tracker, visualize=True)</code>  –  使用上面生成的experiment对象和IdentityTracker对象运行算法。run方法的第二个参数 <code>visualize=True</code> 表示是否显示算法的跟踪效果，True 代表程序运行过程中会显示数据集的图片和算法跟踪的效果（红色的框），False 代表不显示。</li>
+<li><code>experiment.report([tracker.name])</code>  –  利用算法跟踪的结果绘制结果图。</li>
+</ul>
+</li>
+</ul>
+<h3><a id="_71"></a>自定义跟踪器</h3>
+<blockquote>
+<p>第一部分的代码如下：</p>
+</blockquote>
+<pre><code class="prism language-python"><span class="token keyword">class</span> <span class="token class-name">IdentityTracker</span><span class="token punctuation">(</span>Tracker<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>IdentityTracker<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">'IdentityTracker'</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">def</span> <span class="token function">init</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">,</span> box<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>box <span class="token operator">=</span> box
+
+    <span class="token keyword">def</span> <span class="token function">update</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>box
+</code></pre>
+<ul>
+<li><code>def __init__(self):</code>  –  重写父类的 <code>__init__</code> 方法，对IdentityTracker类进行初始化。
+<ul>
+<li>这个方法中需要关注的只有 <code>super(IdentityTracker, self).__init__(name='IdentityTracker')</code> 中把<code>super</code>的第一个参数IdentityTracker改成自定义的类名，<code>__init__</code> 中的name参数改成便于区分的名称，这个用来标记生成的结果文件夹，可以使用类名，也可以使用算法的名称，比如 SiamFC、SiamMask等。</li>
+</ul>
+</li>
+<li>然后重点是自定义跟踪器类(IdentityTracker类)中重写的 <code>init</code> 和 <code>update</code> 方法。
+<ul>
+<li>如果想要重写 <code>init</code> 和 <code>update</code> 方法，把算法融合到got-toolkit中，就需要知道 <code>init</code> 和 <code>update</code> 方法的前置条件和后置条件是什么，根据前置条件以及后置条件的需要，找到算法源码中的合适接口，嵌入到 <code>init</code> 和 <code>update</code> 方法中。</li>
+</ul>
+</li>
+</ul>
+<h4><a id="_init__update__92"></a>解析 init 和 update 方法</h4>
+<blockquote>
+<p>可以简单的利用Python的print()函数和input()函数检查 init 和 update 方法的前置条件和后置条件。</p>
+<p>在使用print和input方法重写 init update 方法之前，需要做一些准备工作：</p>
+</blockquote>
+<p>建立一个文件夹，把算法文件（py文件）和数据集文件放入该文件夹中。文件架结构如下所示：</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tai1ub3RlLm9zcy1jbi1zaGFuZ2hhaS5hbGl5dW5jcy5jb20vV2luZG93cy9waWNfMjAyMDAzMjAyMjQ0MjMvcGljXzIwMjAwNDEyMTc0MTU0LnBuZw?x-oss-process=image/format,png" alt="pic"></p>
+<p>文件夹结构：</p>
+<blockquote>
+<p>test</p>
+<blockquote>
+<p>toolkit_test.py</p>
+<p>data</p>
+<blockquote>
+<p>GOT-10k</p>
+<blockquote>
+<p>test</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<h5><a id="_init__114"></a>重写 init 方法</h5>
+<blockquote>
+<p>重写 init 方法的代码如下所示：</p>
+</blockquote>
+<pre><code class="prism language-python"><span class="token keyword">def</span> <span class="token function">init</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">,</span> box<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"init"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>box<span class="token punctuation">)</span>
+        <span class="token builtin">input</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>box <span class="token operator">=</span> box
+</code></pre>
+<ul>
+<li>检查 image 和 box 参数。</li>
+</ul>
+<h5><a id="_update__129"></a>重写 update 方法</h5>
+<blockquote>
+<p>重写 update 方法的代码如下所示：</p>
+</blockquote>
+<pre><code class="prism language-python"><span class="token keyword">def</span> <span class="token function">update</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"update"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span>
+        <span class="token builtin">input</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>box
+</code></pre>
+<ul>
+<li>检查 image 参数。</li>
+</ul>
+<h5><a id="_143"></a>测试程序</h5>
+<blockquote>
+<p>测试程序的代码如下：</p>
+</blockquote>
+<pre><code class="prism language-python"><span class="token comment">#-*- coding : utf-8 -*-</span>
+ 
+<span class="token keyword">from</span> got10k<span class="token punctuation">.</span>trackers <span class="token keyword">import</span> Tracker
+<span class="token keyword">from</span> got10k<span class="token punctuation">.</span>experiments <span class="token keyword">import</span> ExperimentGOT10k
+
+<span class="token keyword">class</span> <span class="token class-name">IdentityTracker</span><span class="token punctuation">(</span>Tracker<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token builtin">super</span><span class="token punctuation">(</span>IdentityTracker<span class="token punctuation">,</span> self<span class="token punctuation">)</span><span class="token punctuation">.</span>__init__<span class="token punctuation">(</span>name<span class="token operator">=</span><span class="token string">'IdentityTracker'</span><span class="token punctuation">)</span>
+    
+    <span class="token keyword">def</span> <span class="token function">init</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">,</span> box<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"init"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>box<span class="token punctuation">)</span>
+        <span class="token builtin">input</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>box <span class="token operator">=</span> box
+
+    <span class="token keyword">def</span> <span class="token function">update</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span><span class="token string">"update"</span><span class="token punctuation">)</span>
+        <span class="token keyword">print</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span>
+        <span class="token builtin">input</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> self<span class="token punctuation">.</span>box
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token comment"># setup tracker</span>
+    tracker <span class="token operator">=</span> IdentityTracker<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># run experiments on GOT-10k (validation subset)</span>
+    experiment <span class="token operator">=</span> ExperimentGOT10k<span class="token punctuation">(</span><span class="token string">'data/GOT-10k'</span><span class="token punctuation">,</span> subset<span class="token operator">=</span><span class="token string">'test'</span><span class="token punctuation">)</span>
+    experiment<span class="token punctuation">.</span>run<span class="token punctuation">(</span>tracker<span class="token punctuation">,</span> visualize<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># report performance</span>
+    experiment<span class="token punctuation">.</span>report<span class="token punctuation">(</span><span class="token punctuation">[</span>tracker<span class="token punctuation">.</span>name<span class="token punctuation">]</span><span class="token punctuation">)</span>
+</code></pre>
+<p>运行测试程序，结果如下；</p>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tai1ub3RlLm9zcy1jbi1zaGFuZ2hhaS5hbGl5dW5jcy5jb20vV2luZG93cy9waWNfMjAyMDAzMjAyMjQ0MjMvcGljXzIwMjAwNDEyMTc1NDE2LnBuZw?x-oss-process=image/format,png" alt="pic"></p>
+<ul>
+<li>从结果可以看出，init 和 update 方法的 image参数都是 PIL 库的 Image 类（关于 PIL 的 Image 类可以参考：<a href="https://blog.csdn.net/leemboy/article/details/83792729">https://blog.csdn.net/leemboy/article/details/83792729</a>)</li>
+<li>init 方法的 box 参数是一个含有四个元素的列表，根据数据集的位置，找到 GOT-10k_Test_000001 文件夹中的 groundtruth.txt 文件，如下图所示：</li>
+</ul>
+<p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tai1ub3RlLm9zcy1jbi1zaGFuZ2hhaS5hbGl5dW5jcy5jb20vV2luZG93cy9waWNfMjAyMDAzMjAyMjQ0MjMvcGljXzIwMjAwNDEyMTgwMzA4LnBuZw?x-oss-process=image/format,png" alt="pic"></p>
+<p>可以看到，box 参数的内容就是 groundtruth.txt 文件中的内容，也就是数据集第一帧的框图信息。</p>
+<p>box 参数是一个列表，列表的前两个元素：395 和 340 代表框图左上角的点的位置坐标(x,y)，后两个元素代表框图的长和宽(width,height)。</p>
+<p>以此类推，后面出现的 box 变量都是含有四个元素的列表，并且每个元素的信息都是确定的，和上面描述的一致。</p>
+<h2><a id="_197"></a>总结：</h2>
+<p> 通过这篇文章，已经知道如何改写got-toolkit的框架文件来融合算法的got工具，但是不同的单目标跟踪算法的源码结构都是不同的，需要根据具体的算法实例来综合考虑如何融合算法源代码。</p>
+</div>
+</body>
+
+</html>
